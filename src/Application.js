@@ -11,6 +11,7 @@ const initialState = {
   slicesPerPerson: 2
 };
 
+// PRESENTATIONAL COMPONENT - THE RECIPIENT OF PROPS...
 class PizzaCalculator extends Component {
   render() {
     // These are going to be passed down as props
@@ -47,42 +48,60 @@ class PizzaCalculator extends Component {
     );
   }
 }
+// A function that takes the "wrapped component" / "the presentational component" as the argument.
+const WithPizzaCalculations = (WrappedComponent) => {
+  
+  // static displayName gives meaning to anonymous function
+  // be explicit like this with showing where state is coming from  
+  return class extends Component {
+
+    static displayName = `WithPizzaCalculations(${ WrappedComponent.displayName || WrappedComponent.name })`
+    
+    state = { ...initialState };
+    
+    updateNumberOfPeople = (event) => {
+      const numberOfPeople = parseInt(event.target.value, 10);
+      this.setState({ numberOfPeople });
+    };
+  
+    updateSlicesPerPerson = (event) => {
+      const slicesPerPerson = parseInt(event.target.value, 10);
+      this.setState({ slicesPerPerson });
+    };
+  
+    reset = (event) => {
+      this.setState({ ...initialState });
+    };
+  
+    render() {
+      const { numberOfPeople, slicesPerPerson } = this.state;
+      const numberOfPizzas = calculatePizzasNeeded(
+        numberOfPeople,
+        slicesPerPerson
+      );
+    return (
+        <WrappedComponent
+          numberOfPeople={numberOfPeople}
+          updateNumberOfPeople={this.updateNumberOfPeople}
+          slicesPerPerson={slicesPerPerson}
+          updateSlicesPerPerson={this.updateSlicesPerPerson}
+          numberOfPizzas={numberOfPizzas}
+          reset={this.reset}
+        />
+      );
+    }
+
+  }
+  // Container.displayName = `WithPizzaCalculations(${ WrappedComponent.displayName || WrappedComponent.name })`
+  // return Container;
+};
+// WithPizzaCalculations is THE FUNCTION that takes the presentational component(PizzaCalculator) 
+// that is a NEW CLASS, the state wrapper
+const PizzaContainer = WithPizzaCalculations(PizzaCalculator);
 
 export default class Application extends Component {
-  state = {
-    ...initialState
-  };
-
-  updateNumberOfPeople = event => {
-    const numberOfPeople = parseInt(event.target.value, 10);
-    this.setState({ numberOfPeople });
-  };
-
-  updateSlicesPerPerson = event => {
-    const slicesPerPerson = parseInt(event.target.value, 10);
-    this.setState({ slicesPerPerson });
-  };
-
-  reset = event => {
-    this.setState({ ...initialState });
-  };
-
-  render() {
-    const { numberOfPeople, slicesPerPerson } = this.state;
-    const numberOfPizzas = calculatePizzasNeeded(
-      numberOfPeople,
-      slicesPerPerson
-    );
-
-    return (
-      <PizzaCalculator
-        numberOfPeople={numberOfPeople}
-        updateNumberOfPeople={this.updateNumberOfPeople}
-        slicesPerPerson={slicesPerPerson}
-        updateSlicesPerPerson={this.updateSlicesPerPerson}
-        numberOfPizzas={numberOfPizzas}
-        reset={this.reset}
-      />
-    );
-  }
-}
+ render(){
+   return  <PizzaContainer /> 
+ } 
+  
+};
